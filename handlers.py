@@ -22,9 +22,6 @@ def extract_number(text):
     match = re.findall(r'\d+', text)
     return int(match[0]) if match else None
 
-@router.message(Form.choose_action)
-async def choose_action(message: types.Message, state: FSMContext):
-    pass
 
 @router.message(Form.gender)
 async def get_gender(message: types.Message, state: FSMContext):
