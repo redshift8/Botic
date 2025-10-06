@@ -158,3 +158,6 @@ async def show_summary(message: types.Message, state: FSMContext):
 
     await message.answer(text)
 
+repo = ProfileRepo()
+chat_id = message.chat.id
+await repo.save_profile(chat_id=chat_id, data=data)
