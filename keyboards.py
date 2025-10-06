@@ -1,42 +1,32 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-action_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="Записать параметры")]
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=True
-)
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.fsm.context import FSMContext
 
-gender_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="Мужской")],
-        [KeyboardButton(text="Женский")]
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=True
-)
+async def get_gender_kb(state: FSMContext) -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton(text="Мужской", callback_data="gender_male"),
+        InlineKeyboardButton(text="Женский", callback_data="gender_female"),
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
-activity_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="Минимальный")],
-        [KeyboardButton(text="Низкий")],
-        [KeyboardButton(text="Средний")],
-        [KeyboardButton(text="Выше среднего")],
-        [KeyboardButton(text="Высокий")]
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=True
-)
 
-goal_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="Похудение")],
-        [KeyboardButton(text="Набор массы")],
-        [KeyboardButton(text="Поддержание")]
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=True
-)
+async def get_activity_kb(state: FSMContext) -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton(text="Минимальный", callback_data="activity_min"),
+        InlineKeyboardButton(text="Низкий", callback_data="activity_low"),
+        InlineKeyboardButton(text="Средний", callback_data="activity_medium"),
+        InlineKeyboardButton(text="Выше среднего", callback_data="activity_above_medium"),
+        InlineKeyboardButton(text="Высокий", callback_data="activity_high"),
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=[buttons])
+
+
+async def get_goal_kb(state: FSMContext) -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton(text="Похудение", callback_data="goal_loss"),
+        InlineKeyboardButton(text="Набор массы", callback_data="goal_gain"),
+        InlineKeyboardButton(text="Поддержание", callback_data="goal_maintain"),
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
 

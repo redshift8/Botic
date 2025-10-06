@@ -8,3 +8,4 @@ class Form(StatesGroup):
     height = State()
     activity = State()
     goal = State()
+    target_weight = State()
