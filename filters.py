@@ -5,8 +5,8 @@ def extract_number(text: str) -> int | None:
     return int(match[0]) if match else None
 LIMITS = {
     "age": (1, 100),
-    "weight": (10, 300),
-    "height": (20, 300)
+    "weight": (20, 300),
+    "height": (30, 300)
 }
 
 def is_valid_feature(name: str, text: str) -> bool:

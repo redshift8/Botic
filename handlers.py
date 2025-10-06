@@ -39,7 +39,7 @@ async def get_age(message: types.Message, state: FSMContext):
 @router.message(Form.weight)
 async def get_weight(message: types.Message, state: FSMContext):
     if not is_valid_feature("weight", message.text):
-        await message.answer("Вес должен быть от 30 до 300 кг.")
+        await message.answer("Вес должен быть от 20 до 300 кг.")
         return
     weight = extract_number(message.text)
     await state.update_data(weight=weight)
@@ -49,7 +49,7 @@ async def get_weight(message: types.Message, state: FSMContext):
 @router.message(Form.height)
 async def get_height(message: types.Message, state: FSMContext):
     if not is_valid_feature("height", message.text):
-        await message.answer("Рост должен быть от 100 до 250 см.")
+        await message.answer("Рост должен быть от 30 до 250 см.")
         return
     height = extract_number(message.text)
     await state.update_data(height=height)
@@ -89,7 +89,7 @@ async def get_target_weight(message: types.Message, state: FSMContext):
     goal = data.get("goal")
 
     if not is_valid_feature("weight", message.text):
-        await message.answer("Вес должен быть от 30 до 300 кг.")
+        await message.answer("Вес должен быть от 20 до 300 кг.")
         return
 
     if not is_valid_target_weight(goal, current_weight, message.text):
