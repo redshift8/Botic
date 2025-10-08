@@ -24,5 +24,6 @@ profiles = Table(
     Column('activity', String, nullable=True),
     Column('goal', String, nullable=True),
     Column('created_at', DateTime, default=datetime.datetime.utcnow),
+    Column('target_weight', Integer, nullable=True)
 )
 

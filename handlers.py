@@ -2,8 +2,12 @@ from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 from states import Form
 from keyboards import get_gender_kb, get_activity_kb, get_goal_kb
-from repo import ProfileRepo
-from filters import is_valid_feature, get_filtered_features, extract_number, is_valid_target_weight
+from sqlite_repo import SQLiteProfileRepo
+from filters import extract_number, is_valid_target_weight
+from custom_filters import ValidAgeFilter, ValidWeightFilter, ValidHeightFilter, ValidTargetWeightFilter
+from abstract_repo import AbstractProfileRepo
+
+
 
 router = Router()
 
@@ -26,36 +30,23 @@ async def gender_selected(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.age)
     await callback.answer()
 
-@router.message(Form.age)
-async def get_age(message: types.Message, state: FSMContext):
-    if not is_valid_feature("age", message.text):
-        await message.answer("Возраст должен быть от 1 до 100.")
-        return
-    age = extract_number(message.text)
+@router.message(Form.age, ValidAgeFilter())
+async def get_age(message: types.Message, state: FSMContext, age: int):
     await state.update_data(age=age)
     await message.answer("Какой у тебя вес?\n\nВведи число:")
     await state.set_state(Form.weight)
 
-@router.message(Form.weight)
-async def get_weight(message: types.Message, state: FSMContext):
-    if not is_valid_feature("weight", message.text):
-        await message.answer("Вес должен быть от 20 до 300 кг.")
-        return
-    weight = extract_number(message.text)
+@router.message(Form.weight, ValidWeightFilter())
+async def get_weight(message: types.Message, state: FSMContext, weight: int):
     await state.update_data(weight=weight)
     await message.answer("Какой у тебя рост?\n\nВведи число в см:")
     await state.set_state(Form.height)
 
-@router.message(Form.height)
-async def get_height(message: types.Message, state: FSMContext):
-    if not is_valid_feature("height", message.text):
-        await message.answer("Рост должен быть от 30 до 250 см.")
-        return
-    height = extract_number(message.text)
+@router.message(Form.height, ValidHeightFilter())
+async def get_height(message: types.Message, state: FSMContext, height: int):
     await state.update_data(height=height)
     await message.answer("Какой у тебя уровень активности?\n\nВыбери подходящий вариант:", reply_markup=await get_activity_kb(state))
     await state.set_state(Form.activity)
-
 
 @router.message(Form.activity)
 async def activity_text_fallback(message: types.Message, state: FSMContext):
@@ -85,21 +76,15 @@ async def goal_selected(callback: types.CallbackQuery, state: FSMContext):
 @router.message(Form.target_weight)
 async def get_target_weight(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    current_weight = data.get("weight")
     goal = data.get("goal")
+    current_weight = data.get("weight")
 
-    if not is_valid_feature("weight", message.text):
-        await message.answer("Вес должен быть от 20 до 300 кг.")
+    filter = ValidTargetWeightFilter(goal, current_weight)
+    result = await filter(message)
+    if not result:
         return
 
-    if not is_valid_target_weight(goal, current_weight, message.text):
-        if goal == "goal_loss":
-            await message.answer("Желаемый вес должен быть меньше текущего.")
-        elif goal == "goal_gain":
-            await message.answer("Желаемый вес должен быть больше текущего.")
-        return
-
-    target_weight = extract_number(message.text)
+    target_weight = result["target_weight"]
     await state.update_data(target_weight=target_weight)
     await show_summary(message, state)
     await state.clear()
@@ -123,18 +108,6 @@ GOAL_MAP = {
     "goal_maintain": "Поддержание"
 }
 
-@router.callback_query(Form.goal, F.data.in_({"goal_loss", "goal_gain", "goal_maintain"}))
-async def goal_selected(callback: types.CallbackQuery, state: FSMContext):
-    await state.update_data(goal=callback.data)
-    goal = callback.data
-
-    if goal in {"goal_loss", "goal_gain"}:
-        await callback.message.answer("Какой у тебя желаемый вес?")
-        await state.set_state(Form.target_weight)
-    else:
-        await show_summary(callback.message, state)
-        await state.clear()
-    await callback.answer()
 
 async def show_summary(message: types.Message, state: FSMContext):
     data = await state.get_data()
@@ -158,6 +131,6 @@ async def show_summary(message: types.Message, state: FSMContext):
 
     await message.answer(text)
 
-    repo = ProfileRepo()
+    repo: AbstractProfileRepo = SQLiteProfileRepo()
     chat_id = message.chat.id
-    await repo.save_profile(chat_id=chat_id, data=data)
+    new_id = await repo.save_profile(chat_id, data)
